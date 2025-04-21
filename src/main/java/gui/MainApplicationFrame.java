@@ -12,25 +12,18 @@ import java.util.HashSet;
 import java.util.Map;
 
 import javax.swing.*;
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+
 
 import log.Logger;
 import state.IWindowAction;
 import state.WindowSaver;
-
 
 public class MainApplicationFrame extends JFrame implements IWindowAction {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final WindowSaver windowSaver = new WindowSaver(new HashMap<>(), new HashSet<>());
     private LogWindow logWindow;
     private GameWindow gameWindow;
+    private RobotPositionWindow robotPositionWindow;
 
     public MainApplicationFrame() {
         int inset = 50;
@@ -45,21 +38,22 @@ public class MainApplicationFrame extends JFrame implements IWindowAction {
         gameWindow = new GameWindow();
         addWindow(gameWindow);
 
-        // Регистрируем окна
+        robotPositionWindow = new RobotPositionWindow(GameWindow.model);
+        addWindow(robotPositionWindow);
+        windowSaver.registerWindow(getNameOfWindow());
         windowSaver.registerWindow(logWindow.getNameOfWindow());
         windowSaver.registerWindow(gameWindow.getNameOfWindow());
-        windowSaver.registerWindow(this.getNameOfWindow());
+        windowSaver.registerWindow(robotPositionWindow.getNameOfWindow());
 
-        // Загружаем параметры из файла и применяем к окнам
         try {
             windowSaver.loadFromFileSerialized();
             windowSaver.setWindowParams(this);
             windowSaver.setWindowParams(logWindow);
             windowSaver.setWindowParams(gameWindow);
+            windowSaver.setWindowParams(robotPositionWindow);
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-
 
         setJMenuBar(createMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -106,6 +100,7 @@ public class MainApplicationFrame extends JFrame implements IWindowAction {
         windowSaver.saveWindowParams(this);
         windowSaver.saveWindowParams(logWindow);
         windowSaver.saveWindowParams(gameWindow);
+        windowSaver.saveWindowParams(robotPositionWindow);
     }
 
     protected LogWindow createLogWindow() {
@@ -177,7 +172,7 @@ public class MainApplicationFrame extends JFrame implements IWindowAction {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
         } catch (Exception e) {
-            // just ignore
+            // просто игнор
         }
     }
 
@@ -200,8 +195,8 @@ public class MainApplicationFrame extends JFrame implements IWindowAction {
     private void quit() {
         int response = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to exit?",
-                "Confirm Exit",
+                "Вы уверены, что хотите выйти?",
+                "Подтвердите выход",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );

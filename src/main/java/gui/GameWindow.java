@@ -1,28 +1,26 @@
 package gui;
-import state.IWindowAction;
+
+import game.GameVisualizer;
+import game.RobotModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import static java.awt.Frame.ICONIFIED;
-import static java.awt.Frame.NORMAL;
 
 public class GameWindow extends BaseWindow {
+    public static RobotModel model; // <-- добавляем это
     private final GameVisualizer m_visualizer;
 
     public GameWindow() {
         super("Игровое поле", 400, 400);
-        m_visualizer = new GameVisualizer();
+        model = new RobotModel();
+        m_visualizer = new GameVisualizer(model);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
-    }
 
-    public void updateGame() {
-        m_visualizer.repaint();
+        new game.GameController(model, m_visualizer);
     }
 
     @Override
