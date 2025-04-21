@@ -1,5 +1,5 @@
 package gui;
-import state.WindowAction;
+import state.IWindowAction;
 
 import javax.swing.*;
 import java.awt.*;

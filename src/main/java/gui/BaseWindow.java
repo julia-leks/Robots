@@ -1,6 +1,6 @@
 package gui;
 
-import state.WindowAction;
+import state.IWindowAction;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.Map;
 import static java.awt.Frame.ICONIFIED;
 import static java.awt.Frame.NORMAL;
 
-public abstract class BaseWindow extends JInternalFrame implements WindowAction {
+public abstract class BaseWindow extends JInternalFrame implements IWindowAction {
     public BaseWindow(String title, int width, int height) {
         super(title, true, true, true, true);
         setSize(width, height);

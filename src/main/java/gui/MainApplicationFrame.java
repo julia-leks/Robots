@@ -12,12 +12,21 @@ import java.util.HashSet;
 import java.util.Map;
 
 import javax.swing.*;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import log.Logger;
-import state.WindowAction;
+import state.IWindowAction;
 import state.WindowSaver;
 
-public class MainApplicationFrame extends JFrame implements WindowAction {
+
+public class MainApplicationFrame extends JFrame implements IWindowAction {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final WindowSaver windowSaver = new WindowSaver(new HashMap<>(), new HashSet<>());
     private LogWindow logWindow;
@@ -30,23 +39,27 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
 
         setContentPane(desktopPane);
 
-        try {
-            windowSaver.loadFromFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         logWindow = createLogWindow();
         addWindow(logWindow);
-        windowSaver.registerWindow(logWindow.getNameOfWindow());
 
         gameWindow = new GameWindow();
         addWindow(gameWindow);
-        windowSaver.registerWindow(gameWindow.getNameOfWindow());
 
+        // Регистрируем окна
+        windowSaver.registerWindow(logWindow.getNameOfWindow());
+        windowSaver.registerWindow(gameWindow.getNameOfWindow());
         windowSaver.registerWindow(this.getNameOfWindow());
 
-        loadWindowState(windowSaver.getWindowParams());
+        // Загружаем параметры из файла и применяем к окнам
+        try {
+            windowSaver.loadFromFileSerialized();
+            windowSaver.setWindowParams(this);
+            windowSaver.setWindowParams(logWindow);
+            windowSaver.setWindowParams(gameWindow);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
 
         setJMenuBar(createMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -78,20 +91,10 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
             Integer height = params.get("height");
             Integer state = params.get("state");
 
-            if (x != null && y != null) {
-                setLocation(x, y);
-            }
-            if (width != null && height != null) {
-                setSize(width, height);
-            }
-            if (state != null) {
-                setExtendedState(state);
-            }
+            if (x != null && y != null) setLocation(x, y);
+            if (width != null && height != null) setSize(width, height);
+            if (state != null) setExtendedState(state);
         }
-
-        // Восстанавливаем состояние окон
-        windowSaver.setWindowParams(logWindow);
-        windowSaver.setWindowParams(gameWindow);
     }
 
     @Override
@@ -125,7 +128,6 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
         menuBar.add(generateLookAndFeelMenu());
         menuBar.add(generateTestMenu());
         menuBar.add(generateDocumentMenu());
-
         return menuBar;
     }
 
@@ -140,7 +142,7 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
 
     private JMenuItem createSystemLookAndFeelMenuButton() {
         JMenuItem systemLookAndFeelMenu = new JMenuItem("Системная схема", KeyEvent.VK_S);
-        systemLookAndFeelMenu.addActionListener((event) -> {
+        systemLookAndFeelMenu.addActionListener(event -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             this.invalidate();
         });
@@ -149,7 +151,7 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
 
     private JMenuItem createCrossPlatformLookAndFeelMenuButton() {
         JMenuItem crossplatformLookAndMenuButton = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
-        crossplatformLookAndMenuButton.addActionListener((event) -> {
+        crossplatformLookAndMenuButton.addActionListener(event -> {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             this.invalidate();
         });
@@ -166,9 +168,7 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
 
     private JMenuItem createAddLogMessageButton() {
         JMenuItem addLogMessageButton = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
-        addLogMessageButton.addActionListener((event) -> {
-            Logger.debug("Новая строка");
-        });
+        addLogMessageButton.addActionListener(event -> Logger.debug("Новая строка"));
         return addLogMessageButton;
     }
 
@@ -176,7 +176,7 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
         try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+        } catch (Exception e) {
             // just ignore
         }
     }
@@ -193,9 +193,7 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
         menuItem.setMnemonic(KeyEvent.VK_Q);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.ALT_MASK));
         menuItem.setActionCommand("quit");
-
-        menuItem.addActionListener((event) -> quit());
-
+        menuItem.addActionListener(event -> quit());
         return menuItem;
     }
 
@@ -211,7 +209,7 @@ public class MainApplicationFrame extends JFrame implements WindowAction {
         if (response == JOptionPane.YES_OPTION) {
             saveWindowStateBeforeExit();
             try {
-                windowSaver.saveToFile();
+                windowSaver.saveToFileSerialized();
             } catch (IOException e) {
                 e.printStackTrace();
             }

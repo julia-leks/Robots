@@ -4,7 +4,7 @@ import java.util.Map;
 /**
  * Сохраняет и восстанавливает состояние окна
  */
-public interface WindowAction {
+public interface IWindowAction {
 
     /**
      * Сохраняет состояние окна

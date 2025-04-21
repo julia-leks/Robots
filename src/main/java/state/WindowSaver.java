@@ -10,11 +10,6 @@ import java.util.Set;
  */
 public class WindowSaver {
 
-
-    /**
-     * Параметры всех сохраненных окон приложения
-     * Формат имени - "windowName.parameterName"
-     */
     private final Map<String, Integer> windowParams;
     private final Set<String> windowsNames;
     private final String configFilePath;
@@ -22,20 +17,13 @@ public class WindowSaver {
     public WindowSaver(Map<String, Integer> windowParams, Set<String> windowsNames) {
         this.windowParams = windowParams;
         this.windowsNames = windowsNames;
-        this.configFilePath = System.getProperty("user.home") + File.separator + "lekomtseva" + File.separator + "state.cfg";
+        this.configFilePath = System.getProperty("user.home") + File.separator + ".window_state" + File.separator + "state.ser";
     }
 
     public void registerWindow(String windowName) {
         windowsNames.add(windowName);
     }
 
-    /**
-     * Получаем Мапу с параметрами окна по имени этого окна
-     *
-     * @param windowName название окна
-     * @return Мапа с параметрами окна, ключ - название параметра, значение - его значение
-     * @throws IllegalArgumentException если окно не найдено
-     */
     public Map<String, Integer> getWindowParams(String windowName) {
         if (windowsNames.isEmpty() || !windowsNames.contains(windowName)) {
             throw new IllegalArgumentException("Окно '" + windowName + "' не найдено");
@@ -52,75 +40,41 @@ public class WindowSaver {
         return result;
     }
 
-
-    /**
-     * Сохраняет параметры окон в файл
-     * @throws IOException если файл не существует - метод ничего
-     * не делает
-     */
-    public void saveToFile() throws IOException {
-        File configDir = new File(System.getProperty("user.home") + File.separator + "lekomtseva");
+    public void saveToFileSerialized() throws IOException {
+        File configDir = new File(System.getProperty("user.home") + File.separator + ".window_state");
         if (!configDir.exists()) {
             configDir.mkdirs();
         }
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFilePath))) {
-            for (Map.Entry<String, Integer> entry : windowParams.entrySet()) {
-                writer.write(entry.getKey() + "=" + entry.getValue());
-                writer.newLine();
-            }
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(configFilePath))) {
+            oos.writeObject(windowParams);
         }
     }
 
-    /**
-     * Загружает параметры окон из файла
-     * @throws IOException если файл не существует - метод ничего
-     * не делает
-     */
-    public void loadFromFile() throws IOException {
+    @SuppressWarnings("unchecked")
+    public void loadFromFileSerialized() throws IOException, ClassNotFoundException {
         File configFile = new File(configFilePath);
         if (configFile.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(configFilePath))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split("=");
-                    if (parts.length == 2) {
-                        windowParams.put(parts[0], Integer.parseInt(parts[1]));
-                    }
-                }
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(configFile))) {
+                Map<String, Integer> loadedParams = (Map<String, Integer>) ois.readObject();
+                windowParams.clear();
+                windowParams.putAll(loadedParams);
             }
         }
     }
 
-
-    /**
-     * Сохраняет параметры окна при закрытии
-     *
-     * @param window окно, параметры которого нужно сохранить
-     */
-    public void saveWindowParams(WindowAction window) {
+    public void saveWindowParams(IWindowAction window) {
         String windowName = window.getNameOfWindow();
         Map<String, Integer> params = window.saveWindowState();
         for (Map.Entry<String, Integer> entry : params.entrySet()) {
-            windowParams.put(windowName + "." + entry.getKey(),
-                    entry.getValue());
+            windowParams.put(windowName + "." + entry.getKey(), entry.getValue());
         }
     }
 
-
-    /**
-     * Геттер для параметров всех окон
-     */
     public Map<String, Integer> getWindowParams() {
         return windowParams;
     }
 
-
-    /**
-     * Ставит параметры окна
-     *
-     * @param window
-     */
-    public void setWindowParams(WindowAction window) {
+    public void setWindowParams(IWindowAction window) {
         window.loadWindowState(getWindowParams(window.getNameOfWindow()));
     }
 }
