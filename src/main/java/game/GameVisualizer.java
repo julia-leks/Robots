@@ -29,7 +29,7 @@ public class GameVisualizer extends JPanel implements PropertyChangeListener {
 
     private void drawRobot(Graphics g, double x, double y, double direction) {
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setColor(Color.BLACK);
+        g2d.setColor(Color.PINK);
         int centerX = (int) x;
         int centerY = (int) y;
         g2d.fillOval(centerX - 10, centerY - 10, 40, 10);

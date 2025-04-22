@@ -13,7 +13,6 @@ import java.util.Map;
 
 import javax.swing.*;
 
-
 import log.Logger;
 import state.IWindowAction;
 import state.WindowSaver;
@@ -193,6 +192,12 @@ public class MainApplicationFrame extends JFrame implements IWindowAction {
     }
 
     private void quit() {
+        Object oldYes = UIManager.get("OptionPane.yesButtonText");
+        Object oldNo = UIManager.get("OptionPane.noButtonText");
+
+        UIManager.put("OptionPane.yesButtonText", "Да");
+        UIManager.put("OptionPane.noButtonText", "Нет");
+
         int response = JOptionPane.showConfirmDialog(
                 this,
                 "Вы уверены, что хотите выйти?",
@@ -200,6 +205,9 @@ public class MainApplicationFrame extends JFrame implements IWindowAction {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
+
+        UIManager.put("OptionPane.yesButtonText", oldYes);
+        UIManager.put("OptionPane.noButtonText", oldNo);
 
         if (response == JOptionPane.YES_OPTION) {
             saveWindowStateBeforeExit();

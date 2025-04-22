@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GameWindow extends BaseWindow {
-    public static RobotModel model; // <-- добавляем это
+    public static RobotModel model;
     private final GameVisualizer m_visualizer;
 
     public GameWindow() {
