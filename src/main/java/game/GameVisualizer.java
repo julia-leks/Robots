@@ -13,11 +13,6 @@ public class GameVisualizer extends JPanel implements PropertyChangeListener {
         model.addPropertyChangeListener(this);
         setDoubleBuffered(true);
 
-        Timer timer = new Timer(50, e -> {
-            model.updateRobotPosition();
-            repaint();
-        });
-        timer.start();
     }
 
     @Override
@@ -28,18 +23,14 @@ public class GameVisualizer extends JPanel implements PropertyChangeListener {
     }
 
     private void drawRobot(Graphics g, double x, double y, double direction) {
-        Graphics2D g2d = (Graphics2D) g;
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.translate(x, y);
+        g2d.rotate(direction);
         g2d.setColor(Color.PINK);
-        int centerX = (int) x;
-        int centerY = (int) y;
-        g2d.fillOval(centerX - 10, centerY - 10, 40, 10);
-
-        int circleSize = 5;
-        int directionX = centerX + (int) (20 * Math.cos(direction));
-        int directionY = centerY + (int) (20 * Math.sin(direction));
-
-        g2d.setColor(Color.WHITE);
-        g2d.fillOval(directionX - circleSize / 2, directionY - circleSize / 2, circleSize, circleSize);
+        g2d.fillOval(-20, -5, 40, 10);
+        g2d.setColor(Color.BLACK);
+        g2d.fillOval(20 - 2, -2, 4, 4);
+        g2d.dispose();
     }
 
     private void drawTarget(Graphics g, double targetX, double targetY) {
@@ -49,6 +40,7 @@ public class GameVisualizer extends JPanel implements PropertyChangeListener {
 
         g.fillOval(targetCenterX - 5, targetCenterY - 5, 10, 10);
     }
+
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
