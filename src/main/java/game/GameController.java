@@ -1,5 +1,8 @@
 package game;
 
+import gui.GameVisualizer;
+import model.RobotModel;
+
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

@@ -1,25 +1,31 @@
-package game;
+package gui;
+
+import game.RobotObserver;
+import model.RobotModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
-public class GameVisualizer extends JPanel implements PropertyChangeListener {
-    private final RobotModel model;
+public class GameVisualizer extends JPanel implements RobotObserver {
+
+    private double x, y, direction, targetX, targetY;
 
     public GameVisualizer(RobotModel model) {
-        this.model = model;
-        model.addPropertyChangeListener(this);
+        model.addObserver(this);
         setDoubleBuffered(true);
 
+        this.x = model.getX();
+        this.y = model.getY();
+        this.direction = model.getDirection();
+        this.targetX = model.getTargetX();
+        this.targetY = model.getTargetY();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        drawRobot(g, model.getX(), model.getY(), model.getDirection());
-        drawTarget(g, model.getTargetX(), model.getTargetY());
+        drawRobot(g, x, y, direction);
+        drawTarget(g, targetX, targetY);
     }
 
     private void drawRobot(Graphics g, double x, double y, double direction) {
@@ -37,13 +43,16 @@ public class GameVisualizer extends JPanel implements PropertyChangeListener {
         g.setColor(Color.GREEN);
         int targetCenterX = (int) targetX;
         int targetCenterY = (int) targetY;
-
         g.fillOval(targetCenterX - 5, targetCenterY - 5, 10, 10);
     }
 
-
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void onRobotStateChanged(double x, double y, double direction, double targetX, double targetY) {
+        this.x = x;
+        this.y = y;
+        this.direction = direction;
+        this.targetX = targetX;
+        this.targetY = targetY;
         repaint();
     }
 }

@@ -1,16 +1,15 @@
 package gui;
 
-import game.RobotModel;
+import model.RobotModel;
+import game.RobotObserver;
 import state.IWindowAction;
 
 import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RobotPositionWindow extends JInternalFrame implements IWindowAction, PropertyChangeListener {
+public class RobotPositionWindow extends JInternalFrame implements IWindowAction, RobotObserver {
     private final JTextArea textArea;
 
     public RobotPositionWindow(RobotModel model) {
@@ -24,8 +23,8 @@ public class RobotPositionWindow extends JInternalFrame implements IWindowAction
         setVisible(true);
         pack();
 
-        model.addPropertyChangeListener(this);
-        updateText(model.getX(), model.getY());
+        model.addObserver(this);
+        onRobotStateChanged(model.getX(), model.getY(), model.getDirection(), model.getTargetX(), model.getTargetY());
     }
 
     private void updateText(double x, double y) {
@@ -33,11 +32,8 @@ public class RobotPositionWindow extends JInternalFrame implements IWindowAction
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if ("position".equals(evt.getPropertyName())) {
-            double[] newPos = (double[]) evt.getNewValue();
-            updateText(newPos[0], newPos[1]);
-        }
+    public void onRobotStateChanged(double x, double y, double direction, double targetX, double targetY) {
+        updateText(x, y);
     }
 
     @Override

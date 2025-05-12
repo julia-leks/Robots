@@ -1,7 +1,9 @@
-package game;
+package model;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import game.RobotObserver;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RobotModel {
     private double x = 100;
@@ -11,20 +13,28 @@ public class RobotModel {
     private double targetX = 100;
     private double targetY = 100;
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final List<RobotObserver> observers = new ArrayList<>();
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+    public void addObserver(RobotObserver observer) {
+        observers.add(observer);
     }
+
+    public void removeObserver(RobotObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyObservers() {
+        for (RobotObserver observer : observers) {
+            observer.onRobotStateChanged(x, y, direction, targetX, targetY);
+        }
+    }
+
 
     public void updateRobotPosition() {
         double distance = distanceToTarget();
         if (distance < 0.5) {
             return;
         }
-
-        double oldX = x;
-        double oldY = y;
 
         double angleToTarget = Math.atan2(targetY - y, targetX - x);
         double angleDiff = normalizeAngle(angleToTarget - direction);
@@ -37,16 +47,13 @@ public class RobotModel {
             y += speed * Math.sin(direction);
         }
 
-        pcs.firePropertyChange("position", new double[]{oldX, oldY}, new double[]{x, y});
+        notifyObservers();
     }
 
     public void setTarget(int x, int y) {
-        double oldTargetX = this.targetX;
-        double oldTargetY = this.targetY;
         this.targetX = x;
         this.targetY = y;
-
-        pcs.firePropertyChange("target", new double[]{oldTargetX, oldTargetY}, new double[]{targetX, targetY});
+        notifyObservers();
     }
 
     private double distanceToTarget() {
